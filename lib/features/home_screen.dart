@@ -10,6 +10,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _scrollController = ScrollController();
   final _aboutKey = GlobalKey();
   final _experienceKey = GlobalKey();
@@ -17,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _contactKey = GlobalKey();
 
   int _selectedNavIndex = 0;
-  int _visibleSectionIndex = 0;
+  bool _isNavigatingToSection = false;
 
   List<GlobalKey> get _sectionKeys => [
     _aboutKey,
@@ -31,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _onScroll();
       _handleTargetSection(widget.targetSection);
     });
   }
@@ -51,7 +53,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onScroll() {
-    final viewportHeight = MediaQuery.sizeOf(context).height;
+    if (_isNavigatingToSection) return;
+
+    final activeIndex = _activeSectionIndex();
+    if (activeIndex != _selectedNavIndex) {
+      setState(() => _selectedNavIndex = activeIndex);
+    }
+  }
+
+  int _activeSectionIndex() {
+    const activationOffset = 200.0;
     var activeIndex = 0;
 
     for (var i = 0; i < _sectionKeys.length; i++) {
@@ -62,14 +73,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (box == null || !box.attached) continue;
 
       final offset = box.localToGlobal(Offset.zero).dy;
-      if (offset <= viewportHeight * 0.45) {
+      if (offset <= activationOffset) {
         activeIndex = i;
       }
     }
 
-    if (activeIndex != _visibleSectionIndex) {
-      setState(() => _visibleSectionIndex = activeIndex);
-    }
+    return activeIndex;
   }
 
   Future<void> _handleTargetSection(String? section) async {
@@ -83,13 +92,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _navigateToSection(int index) async {
+    _isNavigatingToSection = true;
     setState(() => _selectedNavIndex = index);
     goToSection(context, PortfolioConfig.navSectionIds[index]);
     await scrollToSection(_sectionKeys[index]);
+    _isNavigatingToSection = false;
+    _onScroll();
+  }
+
+  Future<void> _resetToAbout() async {
+    if (_scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+    }
+    await _navigateToSection(0);
   }
 
   Future<void> _scrollDown() async {
-    final nextIndex = (_visibleSectionIndex + 1).clamp(
+    final nextIndex = (_selectedNavIndex + 1).clamp(
       0,
       _sectionKeys.length - 1,
     );
@@ -103,7 +122,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final isCompact = screenWidth < 700;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColor.scaffold,
+      endDrawer: isCompact
+          ? PortfolioMobileNav(
+              selectedIndex: _selectedNavIndex,
+              onItemSelected: _navigateToSection,
+              onLogoTap: _resetToAbout,
+            )
+          : null,
+      drawerEnableOpenDragGesture: isCompact,
       body: Stack(
         children: [
           Positioned(
@@ -120,6 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 PortfolioSideNav(
                   selectedIndex: _selectedNavIndex,
                   onItemSelected: _navigateToSection,
+                  onLogoTap: _resetToAbout,
                 ),
               Expanded(
                 child: Stack(
@@ -143,15 +172,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             sectionKey: _experienceKey,
                             minHeight: screenHeight,
                             hasSideNav: !isCompact,
-                            child: _PlaceholderSection(
-                              title: 'Experience',
-                            ),
+                            child: const ExperienceSection(),
                           ),
                           _PageSection(
                             sectionKey: _workKey,
                             minHeight: screenHeight,
                             hasSideNav: !isCompact,
-                            child: _PlaceholderSection(title: 'Work'),
+                            child: const WorkSection(),
                           ),
                           _PageSection(
                             sectionKey: _contactKey,
@@ -163,12 +190,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    if (isCompact)
-                      const Positioned(
+                    if (isCompact) ...[
+                      Positioned(
                         left: Insets.compactLogoLeft,
                         top: Insets.compactLogoTop,
-                        child: PortfolioLogo(),
+                        child: PortfolioLogo(onTap: _resetToAbout),
                       ),
+                      Positioned(
+                        right: Insets.compactLogoLeft,
+                        top: Insets.compactLogoTop,
+                        child: PortfolioMobileMenuButton(
+                          onPressed: () =>
+                              _scaffoldKey.currentState?.openEndDrawer(),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -179,10 +215,10 @@ class _HomeScreenState extends State<HomeScreen> {
             right: 0,
             bottom: Insets.scrollIndicatorBottom,
             child: AnimatedOpacity(
-              opacity: _visibleSectionIndex == 0 ? 1 : 0,
+              opacity: _selectedNavIndex == 0 ? 1 : 0,
               duration: const Duration(milliseconds: 300),
               child: IgnorePointer(
-                ignoring: _visibleSectionIndex != 0,
+                ignoring: _selectedNavIndex != 0,
                 child: ScrollIndicator(onTap: _scrollDown),
               ),
             ),
@@ -217,20 +253,6 @@ class _PageSection extends StatelessWidget {
       alignment: Alignment.centerLeft,
       padding: Insets.sectionBody(width, hasSideNav: hasSideNav),
       child: child,
-    );
-  }
-}
-
-class _PlaceholderSection extends StatelessWidget {
-  const _PlaceholderSection({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: Styles.displayHeavy(fontSize: 48, height: 1),
     );
   }
 }

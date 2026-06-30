@@ -197,6 +197,17 @@ class Styles {
         color: textColor ?? AppColor.textPrimary,
       );
 
+  static TextStyle logoMonogram({
+    required double fontSize,
+    Color? textColor,
+  }) =>
+      GoogleFonts.eater(
+        fontSize: fontSize,
+        color: textColor ?? AppColor.textPrimary,
+        height: 0.88,
+        letterSpacing: -0.5,
+      );
+
   static TextTheme textTheme(TextTheme base) =>
       GoogleFonts.elmsSansTextTheme(base).apply(
         bodyColor: AppColor.textPrimary,

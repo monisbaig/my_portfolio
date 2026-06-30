@@ -1,27 +1,5 @@
 part of 'buttons.dart';
 
-class _ChamferClipper extends CustomClipper<Path> {
-  const _ChamferClipper(this.chamfer);
-
-  final double chamfer;
-
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width, size.height - chamfer)
-      ..lineTo(size.width - chamfer, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant _ChamferClipper oldClipper) {
-    return oldClipper.chamfer != chamfer;
-  }
-}
-
 class PortfolioButton extends StatefulWidget {
   const PortfolioButton({
     super.key,
@@ -38,7 +16,6 @@ class PortfolioButton extends StatefulWidget {
     this.borderRadius = Sizes.buttonBorderRadius,
     this.textStyle,
     this.clipBottomRight = false,
-    this.chamferSize = 14,
   });
 
   final String text;
@@ -54,7 +31,6 @@ class PortfolioButton extends StatefulWidget {
   final double borderRadius;
   final TextStyle Function(Color textColor)? textStyle;
   final bool clipBottomRight;
-  final double chamferSize;
 
   @override
   State<PortfolioButton> createState() => _PortfolioButtonState();
@@ -144,13 +120,6 @@ class _PortfolioButtonState extends State<PortfolioButton> {
       ),
     );
 
-    final clippedButton = widget.clipBottomRight
-        ? ClipPath(
-            clipper: _ChamferClipper(widget.chamferSize),
-            child: button,
-          )
-        : button;
-
     return MouseRegion(
       onEnter: _isEnabled ? (_) => setState(() => _isHovered = true) : null,
       onExit: _isEnabled ? (_) => setState(() => _isHovered = false) : null,
@@ -158,8 +127,8 @@ class _PortfolioButtonState extends State<PortfolioButton> {
       child: GestureDetector(
         onTap: widget.showSpinner ? null : widget.onPressed,
         child: widget.width == double.infinity
-            ? SizedBox(width: double.infinity, child: clippedButton)
-            : clippedButton,
+            ? SizedBox(width: double.infinity, child: button)
+            : button,
       ),
     );
   }

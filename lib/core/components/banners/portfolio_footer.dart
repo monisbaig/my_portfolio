@@ -24,20 +24,9 @@ class _FooterText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text.rich(
-      textAlign: TextAlign.center,
-      TextSpan(
-        style: Styles.text14Regular(textColor: AppColor.textSecondary),
-        children: [
-          const TextSpan(text: '© 2026 Monis Baig. '),
-          TextSpan(
-            text: 'Developed with Flutter Web',
-            style: Styles.text14Regular(
-              textColor: AppColor.textSecondary,
-            ).copyWith(decoration: TextDecoration.underline),
-          ),
-        ],
-      ),
+    return Text(
+      'Designed and Built by Monis Baig.',
+      style: Styles.text14Regular(textColor: AppColor.textPrimary),
     );
   }
 }

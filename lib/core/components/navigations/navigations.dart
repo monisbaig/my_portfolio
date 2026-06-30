@@ -6,7 +6,9 @@ import 'package:my_portfolio/core/components/buttons/buttons.dart';
 import 'package:my_portfolio/core/components/spacing/spacing.dart';
 import 'package:my_portfolio/core/constants/constants.dart';
 import 'package:my_portfolio/core/theme/theme.dart';
+import 'package:my_portfolio/core/util/util.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 part 'portfolio_side_nav.dart';
+part 'portfolio_mobile_nav.dart';
 part 'scroll_indicator.dart';

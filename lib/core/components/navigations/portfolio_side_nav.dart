@@ -5,10 +5,12 @@ class PortfolioSideNav extends StatelessWidget {
     super.key,
     required this.selectedIndex,
     required this.onItemSelected,
+    this.onLogoTap,
   });
 
   final int selectedIndex;
   final ValueChanged<int> onItemSelected;
+  final VoidCallback? onLogoTap;
 
   static const double width = 100;
 
@@ -20,7 +22,7 @@ class PortfolioSideNav extends StatelessWidget {
         padding: Insets.v32,
         child: Column(
           children: [
-            const PortfolioLogo(),
+            PortfolioLogo(onTap: onLogoTap),
             const Spacer(),
             ...List.generate(PortfolioConfig.navItems.length, (index) {
               return Padding(
@@ -40,10 +42,8 @@ class PortfolioSideNav extends StatelessWidget {
                 width: 88,
                 height: 36,
                 textStyle: (color) => Styles.text12Bold(textColor: color),
-                onPressed: () => launchUrl(
-                  Uri.parse(PortfolioConfig.resumeUrl),
-                  mode: LaunchMode.externalApplication,
-                ),
+                onPressed: () =>
+                    LaunchUrl.openResume(PortfolioConfig.resumeUrl),
               ),
             ),
             const Spacer(),

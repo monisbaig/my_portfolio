@@ -1,17 +1,13 @@
 part of 'util.dart';
 
 class LaunchUrl {
-  static Future<void> openWhatsApp(String phone) async {
-    final Uri whatsappUri = Uri.parse("https://wa.me/$phone");
-    if (!await launchUrl(whatsappUri, mode: LaunchMode.externalApplication)) {
-      throw Exception("Could not open WhatsApp");
-    }
-  }
+  static Future<void> openResume(String resumeUrl) async {
+    final uri = resumeUrl.startsWith('http')
+        ? Uri.parse(resumeUrl)
+        : Uri.base.resolve(resumeUrl);
 
-  static Future<void> makePhoneCall(String phone) async {
-    final Uri telUri = Uri(scheme: "tel", path: phone);
-    if (!await launchUrl(telUri)) {
-      throw Exception("Could not make phone call");
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not open resume');
     }
   }
 }
